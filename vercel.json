@@ -1,13 +1,10 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "app.py",
-      "use": "@vercel/python",
-      "config": { "regions": ["sin1", "icn1"] }
+  "functions": {
+    "api/index.py": {
+      "runtime": "python3.10"
     }
-  ],
+  },
   "routes": [
-    { "src": "/(.*)", "dest": "app.py" }
+    { "src": "/(.*)", "dest": "api/index.py" }
   ]
 }
