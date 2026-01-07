@@ -93,23 +93,37 @@ def qr_status(sid):
     if not sess:
         return jsonify(success=False, status="NOT_FOUND")
 
-    r = call(
-        f"/api/v2/authentication/qrcode_status?qrcode_id={urllib.parse.quote(sess['qrcode_id'])}",
-        cookies=sess["cookies"]
-    )
-    data = r.json()
-
-    status = data["data"]["status"]
-    token = data["data"].get("qrcode_token")
-
-    if token:
-        sess["qrcode_token"] = token
-
-    return jsonify(
-        success=True,
-        status=status,
-        has_token=bool(sess["qrcode_token"])
-    )
+    try:
+        r = call(
+            f"/api/v2/authentication/qrcode_status?qrcode_id={urllib.parse.quote(sess['qrcode_id'])}",
+            cookies=sess["cookies"]
+        )
+        
+        # THÊM XỬ LÝ LỖI
+        if r.status_code != 200:
+            return jsonify(success=False, error=f"Shopee API error: {r.status_code}")
+        
+        data = r.json()
+        
+        # THÊM CHECK None và key "data"
+        if not data or "data" not in data:
+            return jsonify(success=False, error="Invalid response from Shopee")
+        
+        status = data["data"].get("status", "UNKNOWN")
+        token = data["data"].get("qrcode_token")
+        
+        if token:
+            sess["qrcode_token"] = token
+            
+        return jsonify(
+            success=True,
+            status=status,
+            has_token=bool(sess["qrcode_token"])
+        )
+        
+    except Exception as e:
+        # THÊM XỬ LÝ EXCEPTION
+        return jsonify(success=False, error=f"Internal error: {str(e)}")
 
 @app.route("/api/qr/login/<sid>", methods=["POST"])
 def qr_login(sid):
